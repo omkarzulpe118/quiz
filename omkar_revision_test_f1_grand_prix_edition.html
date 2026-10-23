@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omkar Revision Test - F1 Grand Prix Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        poppins: ['Poppins', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --team-accent: #e10600;
+            --team-accent-dark: #b30500;
+            --team-accent-glow: rgba(225, 6, 0, 0.4);
+            --team-secondary: #ffcc00;
+            --team-bg: #050505;
+            --team-card-bg: #111116;
+            --team-border: #22222a;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--team-bg);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, var(--team-accent-glow) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 100% 100%, 30px 30px, 30px 30px;
+            transition: background-color 0.5s ease;
+        }
+
+        .f1-card {
+            background: var(--team-card-bg);
+            border: 2px solid var(--team-border);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 30px var(--team-accent-glow);
+            position: relative;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .f1-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--team-accent), var(--team-secondary), var(--team-accent));
+            transition: background 0.4s ease;
+        }
+
+        .screen-fade-in {
+            animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.96) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .option-btn {
+            border: 1px solid var(--team-border);
+            background: rgba(10, 10, 15, 0.8);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover {
+            border-color: var(--team-accent);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(6px);
+        }
+
+        .option-btn.selected {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: var(--team-accent) !important;
+            box-shadow: 0 0 20px var(--team-accent-glow);
+            transform: translateX(8px);
+        }
+
+        .team-accent-bg { background-color: var(--team-accent) !important; }
+        .team-accent-color { color: var(--team-accent) !important; }
+        .team-accent-border { border-color: var(--team-accent) !important; }
+        .team-glow-shadow { box-shadow: 0 0 22px var(--team-accent-glow) !important; }
+
+        .telemetry-pulse {
+            animation: telemetryPulse 1.8s infinite;
+        }
+        @keyframes telemetryPulse {
+            0%, 100% { filter: drop-shadow(0 0 2px var(--team-accent)); }
+            50% { filter: drop-shadow(0 0 12px var(--team-accent)); }
+        }
+
+        .tachometer-ring {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 0.4s ease, stroke 0.4s ease;
+        }
+
+        .checkered-pattern {
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(45deg, #000 25%, transparent 25%), 
+                linear-gradient(-45deg, #000 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #000 75%), 
+                linear-gradient(-45deg, transparent 75%, #000 75%);
+            background-size: 10px 10px;
+            background-position: 0 0, 0 5px, 5px -5px, -5px 0px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #22222a; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--team-accent); }
+    </style>
+</head>
+<body class="flex items-center justify-center p-3 sm:p-6 relative">
+
+    <div class="w-full max-w-3xl z-10 my-auto">
+        
+        <!-- TOP CENTER F1 BRANDING & TEAM BADGE HEADER -->
+        <div class="text-center mb-6 space-y-3">
+            <div id="top-team-badge" class="inline-flex items-center gap-3 bg-black/80 px-6 py-2.5 rounded-full border-2 team-accent-border team-glow-shadow transition-all duration-300">
+                <i id="header-team-logo" class="fa-solid fa-shield-halved team-accent-color text-2xl"></i>
+                <span id="header-team-name" class="font-orbitron font-black text-sm sm:text-base text-white tracking-widest uppercase">
+                    SCUDERIA FERRARI
+                </span>
+                <span id="header-team-tag" class="text-[10px] font-orbitron bg-white/10 px-2 py-0.5 rounded text-amber-400 font-bold">
+                    P1 POLE
+                </span>
+            </div>
+
+            <h1 class="font-orbitron font-black text-xl sm:text-3xl text-white tracking-widest uppercase flex items-center justify-center gap-2">
+                <i class="fa-solid fa-flag-checkered text-rose-600"></i> OMKAR REVISION TEST
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 font-medium tracking-wider uppercase">ICSE Class 9 Chemistry • Chapters 1-4</p>
+        </div>
+
+
+        <!-- MAIN F1 CARD -->
+        <div class="f1-card rounded-2xl p-5 sm:p-8">
+
+            <!-- Dynamic Team Selection Bar -->
+            <div class="mb-6 pb-5 border-b border-[var(--team-border)]">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="font-orbitron text-xs text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-palette team-accent-color"></i> SELECT YOUR LIVERY & TEAM:
+                    </label>
+                    <span id="selected-team-title" class="text-[11px] font-orbitron font-bold team-accent-color uppercase">
+                        FERRARI (SCUDERIA RED)
+                    </span>
+                </div>
+
+                <!-- 10 TEAM BUTTON GRID -->
+                <div class="grid grid-cols-5 sm:grid-cols-10 gap-2" id="team-button-grid">
+                    <!-- Dynamic Team Icons injected here -->
+                </div>
+            </div>
+
+
+            <!-- ================= SCREEN 1: REGISTRATION & ANTI-REPEAT ================= -->
+            <div id="screen-register" class="space-y-6 screen-fade-in">
+                <div class="text-center space-y-2">
+                    <h2 class="font-orbitron text-2xl sm:text-3xl font-black text-white uppercase tracking-wider">
+                        QUALIFYING GRID REGISTRATION
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+                        Each driver is allocated strictly 1 attempt on the grid. Enter your unique name to take the test.
+                    </p>
+                </div>
+
+                <div class="bg-black/60 border border-[var(--team-border)] p-5 rounded-xl space-y-4">
+                    <label for="student-name" class="block font-orbitron text-xs team-accent-color font-bold uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-helmet-safety text-base"></i> Enter Driver Name:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="student-name" 
+                        placeholder="e.g. Omkar Sharma" 
+                        class="w-full bg-[#0a0a10] border-2 border-[var(--team-border)] focus:team-accent-border text-white px-4 py-3.5 rounded-lg font-poppins text-sm outline-none transition-all duration-300"
+                        autocomplete="off"
+                    >
+                    <!-- INLINE WARNING BANNER FOR ANTI-REPEAT -->
+                    <div id="registration-error-box" class="hidden bg-rose-950/80 border border-rose-600 text-rose-200 p-3 rounded-lg text-xs font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-sm"></i>
+                        <span id="error-msg-text">Driver name already registered on the grid! Each driver gets only 1 attempt.</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                    <div class="bg-black/40 border border-[var(--team-border)] p-3.5 rounded-lg flex items-center gap-3">
+                        <i class="fa-solid fa-stopwatch text-xl team-accent-color"></i>
+                        <div>
+                            <strong class="block font-orbitron text-white text-[11px]">TELEMETRY TIMER</strong>
+                            Live lap timer tracks your speed.
+                        </div>
+                    </div>
+                    <div class="bg-black/40 border border-[var(--team-border)] p-3.5 rounded-lg flex items-center gap-3">
+                        <i class="fa-solid fa-shield-halved text-xl text-amber-400"></i>
+                        <div>
+                            <strong class="block font-orbitron text-white text-[11px]">ANTI-REPEAT LOCK</strong>
+                            One race entry per student name.
+                        </div>
+                    </div>
+                </div>
+
+                <button 
+                    id="btn-start" 
+                    class="w-full team-accent-bg text-white font-orbitron font-black text-sm sm:text-base py-4 rounded-xl team-glow-shadow active:scale-[0.98] transition-all uppercase tracking-widest flex items-center justify-center gap-3"
+                >
+                    <i class="fa-solid fa-gauge-high text-lg"></i> START QUALIFYING LAP
+                </button>
+            </div>
+
+
+            <!-- ================= SCREEN 2: EXAM ENGINE ================= -->
+            <div id="screen-exam" class="hidden space-y-5">
+                <!-- TELEMETRY BAR & TACHOMETER GAUGE -->
+                <div class="flex items-center justify-between text-xs font-orbitron font-bold bg-black/60 border border-[var(--team-border)] p-3 rounded-xl">
+                    <span id="question-tracker" class="text-white flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group team-accent-color"></i> LAP 1 / 20
+                    </span>
+
+                    <div class="flex items-center gap-3">
+                        <!-- TACHOMETER GAUGE -->
+                        <div class="relative w-9 h-9 flex items-center justify-center">
+                            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" stroke="#222" stroke-width="9" fill="transparent" />
+                                <circle id="tachometer-circle" class="tachometer-ring" cx="50" cy="50" r="45" stroke="var(--team-accent)" stroke-width="9" fill="transparent" />
+                            </svg>
+                            <i class="fa-solid fa-bolt text-[11px] team-accent-color absolute"></i>
+                        </div>
+                        <span id="timer-display" class="team-accent-color font-black text-base tracking-widest telemetry-pulse">
+                            00:00
+                        </span>
+                    </div>
+                </div>
+
+                <!-- ANIMATED CHECKERED FLAG PROGRESS BAR -->
+                <div class="w-full bg-black h-3 rounded-full border border-[var(--team-border)] overflow-hidden relative">
+                    <div id="progress-bar" class="h-full team-accent-bg rounded-full transition-all duration-300 relative overflow-hidden" style="width: 5%;">
+                        <div class="absolute inset-0 checkered-pattern opacity-20"></div>
+                    </div>
+                </div>
+
+                <!-- CHAPTER TAG -->
+                <div>
+                    <span id="chapter-tag" class="bg-black team-accent-color border border-[var(--team-border)] font-orbitron font-bold text-[10px] px-3.5 py-1.5 rounded-md uppercase tracking-wider inline-block">
+                        CHAPTER 1: LANGUAGE OF CHEMISTRY
+                    </span>
+                </div>
+
+                <!-- QUESTION CARD -->
+                <div class="bg-black/60 border border-[var(--team-border)] p-5 sm:p-6 rounded-xl space-y-4">
+                    <h2 id="question-text" class="text-base sm:text-lg font-semibold text-white leading-relaxed">
+                        Loading question...
+                    </h2>
+
+                    <!-- OPTIONS LIST -->
+                    <div id="options-container" class="space-y-3 pt-2">
+                        <!-- Dynamic options -->
+                    </div>
+                </div>
+
+                <!-- NAVIGATION BUTTONS -->
+                <div class="flex items-center justify-between gap-3 pt-2">
+                    <button 
+                        id="btn-prev" 
+                        class="px-5 py-3.5 rounded-xl border border-[var(--team-border)] bg-black text-slate-400 font-orbitron font-bold text-xs uppercase hover:text-white transition-all flex items-center gap-2"
+                    >
+                        <i class="fa-solid fa-chevron-left"></i> PREV
+                    </button>
+                    <button 
+                        id="btn-next" 
+                        class="flex-1 py-4 rounded-xl team-accent-bg text-white font-orbitron font-black text-xs sm:text-sm uppercase tracking-wider team-glow-shadow active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                        NEXT LAP <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+
+            <!-- ================= SCREEN 3: RESULTS & RACE STANDINGS ================= -->
+            <div id="screen-result" class="hidden space-y-6">
+                
+                <!-- FINISH LINE PODIUM HEADER -->
+                <div class="text-center space-y-2">
+                    <div id="podium-badge-container" class="inline-block p-4 bg-black/60 rounded-full border-2 team-accent-border team-glow-shadow mb-1">
+                        <i id="podium-icon" class="fa-solid fa-trophy team-accent-color text-4xl animate-bounce"></i>
+                    </div>
+                    <h2 id="finish-status-title" class="font-orbitron text-2xl sm:text-3xl font-black text-white uppercase tracking-wider">
+                        CHECKERED FLAG!
+                    </h2>
+                    <p id="finish-status-sub" class="text-slate-400 text-xs sm:text-sm uppercase tracking-wider">
+                        Grand Prix Session Completed. Official Race Classification Below.
+                    </p>
+                </div>
+
+                <!-- STATS GRID -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-black/60 border border-[var(--team-border)] p-4 rounded-xl text-center space-y-1">
+                        <span class="block font-orbitron text-[10px] text-slate-400 uppercase tracking-widest">TOTAL SCORE</span>
+                        <span id="final-score" class="font-orbitron text-2xl sm:text-4xl font-black text-white">0/20</span>
+                    </div>
+                    <div class="bg-black/60 border border-[var(--team-border)] p-4 rounded-xl text-center space-y-1">
+                        <span class="block font-orbitron text-[10px] text-slate-400 uppercase tracking-widest">LAP TIME</span>
+                        <span id="final-time" class="font-orbitron text-2xl sm:text-4xl font-black team-accent-color">00:00</span>
+                    </div>
+                </div>
+
+                <!-- POST-RACE CORRECTIONS REVIEW -->
+                <div id="review-section" class="space-y-3">
+                    <h3 class="font-orbitron text-xs text-white font-bold uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-list-check team-accent-color"></i> TELEMETRY REVIEW & CORRECT ANSWERS
+                    </h3>
+                    <div id="review-list" class="space-y-3 max-h-64 overflow-y-auto pr-1">
+                        <!-- Dynamic Review Cards injected here -->
+                    </div>
+                </div>
+
+                <!-- OFFICIAL F1 GRAND PRIX STANDINGS TABLE -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-[var(--team-border)] pb-2">
+                        <h3 class="font-orbitron text-xs text-white font-bold uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-ranking-star team-accent-color"></i> F1 GRAND PRIX RACE CLASSIFICATION (STANDINGS)
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-orbitron">RANKED BY SCORE & TIME</span>
+                    </div>
+
+                    <div class="bg-black border border-[var(--team-border)] rounded-xl overflow-hidden shadow-2xl max-h-60 overflow-y-auto">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead class="bg-[#0a0a10] font-orbitron text-slate-400 text-[10px] uppercase border-b border-[var(--team-border)] sticky top-0">
+                                <tr>
+                                    <th class="py-3.5 px-3 text-center">POS</th>
+                                    <th class="py-3.5 px-3">DRIVER NAME</th>
+                                    <th class="py-3.5 px-3">CONSTRUCTOR</th>
+                                    <th class="py-3.5 px-3 text-center">SCORE</th>
+                                    <th class="py-3.5 px-3 text-right">LAP TIME</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-body" class="divide-y divide-[var(--team-border)] text-slate-200">
+                                <!-- Dynamic Rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- NOTE: RETAKE BLOCKED BY ANTI-REPEAT -->
+                <div class="p-3 bg-black/40 border border-[var(--team-border)] rounded-xl text-center text-xs text-slate-400">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i> Anti-Repeat Active: Driver attempts are locked to 1 entry per name on the grid.
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- SCRIPT ENGINE -->
+    <script>
+        // FULL 10 F1 TEAMS COLOR PALETTES & METADATA
+        const teamThemes = {
+            ferrari: { name: "SCUDERIA FERRARI", logo: "fa-shield-halved", accent: '#e10600', dark: '#b30500', glow: 'rgba(225, 6, 0, 0.45)', secondary: '#ffcc00', bg: '#050303', card: '#110a0a', border: '#2b1010', desc: "FERRARI (SCUDERIA RED)" },
+            redbull: { name: "RED BULL RACING", logo: "fa-bolt-lightning", accent: '#3671C6', dark: '#122456', glow: 'rgba(54, 113, 198, 0.45)', secondary: '#fcd700', bg: '#02050e', card: '#0a0f1d', border: '#17233f', desc: "RED BULL (NAVY/YELLOW)" },
+            mercedes: { name: "MERCEDES AMG", logo: "fa-star", accent: '#27F4D2', dark: '#00736f', glow: 'rgba(39, 244, 210, 0.45)', secondary: '#c0c0c0', bg: '#020808', card: '#0b1615', border: '#17302c', desc: "MERCEDES (PETRONAS TEAL)" },
+            mclaren: { name: "MCLAREN F1", logo: "fa-fire", accent: '#FF8000', dark: '#cc6600', glow: 'rgba(255, 128, 0, 0.45)', secondary: '#47C7FC', bg: '#090400', card: '#1a0e03', border: '#381f08', desc: "MCLAREN (PAPAYA ORANGE)" },
+            aston: { name: "ASTON MARTIN", logo: "fa-feather", accent: '#229971', dark: '#186b4f', glow: 'rgba(34, 153, 113, 0.45)', secondary: '#cedc00', bg: '#010805', card: '#0a1712', border: '#163328', desc: "ASTON MARTIN (RACING GREEN)" },
+            alpine: { name: "ALPINE F1 TEAM", logo: "fa-mountain", accent: '#0093cc', dark: '#006a94', glow: 'rgba(0, 147, 204, 0.45)', secondary: '#ff87bc', bg: '#01060d', card: '#0b1420', border: '#16293d', desc: "ALPINE (BWT BLUE/PINK)" },
+            williams: { name: "WILLIAMS RACING", logo: "fa-flag", accent: '#00A0DE', dark: '#0072a0', glow: 'rgba(0, 160, 222, 0.45)', secondary: '#ffffff', bg: '#01050c', card: '#0b121e', border: '#15253b', desc: "WILLIAMS (GULF NAVY)" },
+            haas: { name: "HAAS F1 TEAM", logo: "fa-check", accent: '#E6002B', dark: '#ad0020', glow: 'rgba(230, 0, 43, 0.45)', secondary: '#ffffff', bg: '#080808', card: '#141414', border: '#292929', desc: "HAAS (WHITE/RED/BLACK)" },
+            vcarb: { name: "VISA CASH APP RB", logo: "fa-bullseye", accent: '#6692FF', dark: '#3366ff', glow: 'rgba(102, 146, 255, 0.45)', secondary: '#ffffff', bg: '#02040c', card: '#0a0f20', border: '#152140', desc: "VCARB (RB BLUE/SILVER)" },
+            sauber: { name: "KICK SAUBER / AUDI", logo: "fa-cube", accent: '#52E252', dark: '#38b338', glow: 'rgba(82, 226, 82, 0.45)', secondary: '#c0c0c0', bg: '#010801', card: '#0a170a', border: '#173317', desc: "SAUBER (NEON GREEN)" }
+        };
+
+        // 20 VERIFIED ICSE CLASS 9 CHEMISTRY QUESTIONS (Chapters 1-4)
+        const questionsList = [
+            // Chapter 1
+            { chapter: "Chapter 1: Language of Chemistry", q: "What is the valency of nitrogen in nitrogen dioxide (NO₂)?", options: ["+2", "+4", "-2", "+3"], answer: 1, explanation: "In NO₂, oxygen has a valency of -2 (total -4). To balance it, nitrogen exhibits a valency of +4." },
+            { chapter: "Chapter 1: Language of Chemistry", q: "Which radical symbol represents the phosphate ion correctly?", options: ["PO₄³⁻", "SO₄²⁻", "CO₃²⁻", "NO₃⁻"], answer: 0, explanation: "Phosphate is a trivalent negative radical with formula PO₄³⁻." },
+            { chapter: "Chapter 1: Language of Chemistry", q: "What is the correct molecular formula of ferric sulfate?", options: ["FeSO₄", "Fe₂(SO₄)₃", "Fe₃(SO₄)₂", "FeSO₃"], answer: 1, explanation: "Ferric ion is Fe³⁺ and sulfate ion is SO₄²⁻. Criss-crossing valencies yields Fe₂(SO₄)₃." },
+            { chapter: "Chapter 1: Language of Chemistry", q: "What is the percentage composition of carbon in sodium carbonate (Na₂CO₃)? [Na=23, C=12, O=16]", options: ["22.64%", "11.32%", "43.38%", "35.20%"], answer: 1, explanation: "Molecular weight of Na₂CO₃ = 46+12+48 = 106. % of C = (12/106) × 100 = 11.32%." },
+            { chapter: "Chapter 1: Language of Chemistry", q: "In a chemical equation, what does the symbol '↑' next to a product indicate?", options: ["Precipitate formed", "Evolution of gas", "Heat absorbed", "Catalyst present"], answer: 1, explanation: "An upward arrow '↑' signifies the evolution of a gas, whereas a downward arrow '↓' indicates a precipitate." },
+
+            // Chapter 2
+            { chapter: "Chapter 2: Chemical Changes & Reactions", q: "Which reaction type is represented by 2KClO₃ → 2KCl + 3O₂↑?", options: ["Displacement", "Thermal Decomposition", "Neutralization", "Direct Combination"], answer: 1, explanation: "Potassium chlorate decomposes on heating into KCl and oxygen gas, which is a thermal decomposition reaction." },
+            { chapter: "Chapter 2: Chemical Changes & Reactions", q: "What role does Manganese dioxide (MnO₂) play in the catalytic decomposition of H₂O₂?", options: ["Negative catalyst", "Promoter", "Positive catalyst", "Inhibitor"], answer: 2, explanation: "MnO₂ speeds up the rate of decomposition of hydrogen peroxide without being consumed, serving as a positive catalyst." },
+            { chapter: "Chapter 2: Chemical Changes & Reactions", q: "Which of the following is an example of a photochemical reaction?", options: ["2AgCl → 2Ag + Cl₂", "CaO + H₂O → Ca(OH)₂", "Zn + H₂SO₄ → ZnSO₄ + H₂", "NaOH + HCl → NaCl + H₂O"], answer: 0, explanation: "Silver chloride decomposes in the presence of sunlight (light energy), making it a photochemical reaction." },
+            { chapter: "Chapter 2: Chemical Changes & Reactions", q: "What color change occurs when copper carbonate (CuCO₃) is heated strongly?", options: ["Blue to White", "Green to Black", "Red to Brown", "Yellow to Green"], answer: 1, explanation: "Green CuCO₃ decomposes into black copper oxide (CuO) and carbon dioxide gas." },
+            { chapter: "Chapter 2: Chemical Changes & Reactions", q: "What is a reaction called when two solutions exchange ions to form an insoluble solid?", options: ["Addition reaction", "Precipitation reaction", "Thermal dissociation", "Neutralization"], answer: 1, explanation: "Double decomposition producing an insoluble solid is specifically known as a precipitation reaction." },
+
+            // Chapter 3
+            { chapter: "Chapter 3: Water", q: "Why is water referred to as a 'universal solvent'?", options: ["It exists everywhere", "It has a high dielectric constant and polar nature", "It boils at 100°C", "It is neutral to litmus"], answer: 1, explanation: "Water's high dielectric constant weakens ionic bonds, allowing it to dissolve a vast range of substances." },
+            { chapter: "Chapter 3: Water", q: "What type of substance is anhydrous copper sulfate (CuSO₄)?", options: ["Hygroscopic indicator for water", "Efflorescent salt", "Deliquescent solid", "Insoluble precipitate"], answer: 0, explanation: "Anhydrous CuSO₄ absorbs atmospheric water vapor turning blue, making it a hygroscopic indicator." },
+            { chapter: "Chapter 3: Water", q: "Which salt is primarily responsible for TEMPORARY hardness in water?", options: ["Calcium sulfate", "Magnesium chloride", "Calcium hydrogen carbonate [Ca(HCO₃)₂]", "Sodium chloride"], answer: 2, explanation: "Bicarbonates (hydrogen carbonates) of calcium and magnesium cause temporary hardness." },
+            { chapter: "Chapter 3: Water", q: "What happens when washing soda crystals (Na₂CO₃·10H₂O) are exposed to dry air?", options: ["Absorb moisture", "Lose water of crystallization (Efflorescence)", "Dissolve completely", "No change"], answer: 1, explanation: "Washing soda loses 9 molecules of water of crystallization to dry air, demonstrating efflorescence." },
+            { chapter: "Chapter 3: Water", q: "Which method removes BOTH temporary and permanent hardness from water?", options: ["Boiling", "Adding washing soda (Na₂CO₃)", "Simple filtration", "Sedimentation"], answer: 1, explanation: "Adding washing soda precipitates soluble Ca and Mg salts as insoluble carbonates for both types of hardness." },
+
+            // Chapter 4
+            { chapter: "Chapter 4: Atomic Structure & Chemical Bonding", q: "Who discovered the neutron, and what is its charge?", options: ["J.J. Thomson; Positive", "Rutherford; Negative", "James Chadwick; Neutral", "Niels Bohr; Neutral"], answer: 2, explanation: "James Chadwick discovered the neutron in 1932, which carries zero net electric charge." },
+            { chapter: "Chapter 4: Atomic Structure & Chemical Bonding", q: "What is the electronic configuration of a chlorine atom (Atomic Number = 17)?", options: ["2, 8, 7", "2, 8, 8", "2, 7, 8", "2, 8, 6"], answer: 0, explanation: "17 electrons distributed in shells: K=2, L=8, M=7." },
+            { chapter: "Chapter 4: Atomic Structure & Chemical Bonding", q: "Which type of bond is formed by complete transfer of electrons from a metal to a non-metal?", options: ["Covalent bond", "Electrovalent (Ionic) bond", "Coordinate bond", "Hydrogen bond"], answer: 1, explanation: "Complete transfer of valence electrons from metallic to non-metallic atoms forms ionic (electrovalent) bonds." },
+            { chapter: "Chapter 4: Atomic Structure & Chemical Bonding", q: "What is the nature of the bond in a nitrogen molecule (N₂)?", options: ["Single covalent bond", "Double covalent bond", "Triple covalent bond", "Electrovalent bond"], answer: 2, explanation: "Two nitrogen atoms share 3 pairs of electrons to complete octets, forming a triple covalent bond (:N≡N:)." },
+            { chapter: "Chapter 4: Atomic Structure & Chemical Bonding", q: "Atoms of the same element having the same atomic number but different mass numbers are:", options: ["Isobars", "Isotopes", "Isotones", "Isomers"], answer: 1, explanation: "Isotopes have identical atomic numbers (protons) but different mass numbers due to varying neutrons." }
+        ];
+
+        let currentIdx = 0;
+        let selectedAnswers = new Array(questionsList.length).fill(null);
+        let studentName = "";
+        let selectedTeamKey = "ferrari";
+        let startTime = 0;
+        let timerInterval = null;
+        let totalElapsedSeconds = 0;
+
+        // UI ELEMENTS
+        const teamButtonGrid = document.getElementById('team-button-grid');
+        const headerTeamLogo = document.getElementById('header-team-logo');
+        const headerTeamName = document.getElementById('header-team-name');
+        const selectedTeamTitle = document.getElementById('selected-team-title');
+        
+        const screenRegister = document.getElementById('screen-register');
+        const screenExam = document.getElementById('screen-exam');
+        const screenResult = document.getElementById('screen-result');
+        const studentNameInput = document.getElementById('student-name');
+        const registrationErrorBox = document.getElementById('registration-error-box');
+        const errorMsgText = document.getElementById('error-msg-text');
+        const btnStart = document.getElementById('btn-start');
+
+        const questionTracker = document.getElementById('question-tracker');
+        const timerDisplay = document.getElementById('timer-display');
+        const tachometerCircle = document.getElementById('tachometer-circle');
+        const progressBar = document.getElementById('progress-bar');
+        const chapterTag = document.getElementById('chapter-tag');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        const finalScore = document.getElementById('final-score');
+        const finalTime = document.getElementById('final-time');
+        const reviewList = document.getElementById('review-list');
+        const leaderboardBody = document.getElementById('leaderboard-body');
+
+        // INITIALIZE 10 TEAM BUTTONS
+        function renderTeamSelectorGrid() {
+            teamButtonGrid.innerHTML = '';
+            Object.keys(teamThemes).forEach((key) => {
+                const team = teamThemes[key];
+                const btn = document.createElement('button');
+                btn.className = `p-2.5 rounded-xl border transition-all duration-300 flex flex-col items-center justify-center gap-1 ${key === selectedTeamKey ? 'bg-white/10 border-white shadow-lg scale-105' : 'bg-black/40 border-[var(--team-border)] hover:border-slate-500'}`;
+                btn.innerHTML = `
+                    <i class="fa-solid ${team.logo} text-sm" style="color: ${team.accent};"></i>
+                    <span class="text-[9px] font-orbitron font-bold text-slate-300 truncate w-full text-center">${key.toUpperCase()}</span>
+                `;
+                btn.addEventListener('click', () => {
+                    selectedTeamKey = key;
+                    applyTeamTheme(key);
+                    renderTeamSelectorGrid();
+                });
+                teamButtonGrid.appendChild(btn);
+            });
+        }
+
+        // APPLY DYNAMIC THEME
+        function applyTeamTheme(teamKey) {
+            const theme = teamThemes[teamKey] || teamThemes.ferrari;
+            const root = document.documentElement;
+            root.style.setProperty('--team-accent', theme.accent);
+            root.style.setProperty('--team-accent-dark', theme.dark);
+            root.style.setProperty('--team-accent-glow', theme.glow);
+            root.style.setProperty('--team-secondary', theme.secondary);
+            root.style.setProperty('--team-bg', theme.bg);
+            root.style.setProperty('--team-card-bg', theme.card);
+            root.style.setProperty('--team-border', theme.border);
+
+            headerTeamLogo.className = `fa-solid ${theme.logo} team-accent-color text-2xl`;
+            headerTeamName.textContent = theme.name;
+            selectedTeamTitle.textContent = theme.desc;
+        }
+
+        // START EXAM ENGINE WITH ANTI-REPEAT PROTECTION
+        btnStart.addEventListener('click', () => {
+            studentName = studentNameInput.value.trim();
+            registrationErrorBox.classList.add('hidden');
+
+            if (!studentName) {
+                errorMsgText.textContent = "Please enter your driver name to start qualifying!";
+                registrationErrorBox.classList.remove('hidden');
+                return;
+            }
+
+            // CHECK ANTI-REPEAT: Verify if name already exists in localStorage database
+            const existingLeaderboard = JSON.parse(localStorage.getItem('omkar_f1_gp_quiz_db') || '[]');
+            const nameNormalized = studentName.toLowerCase();
+            const alreadyRegistered = existingLeaderboard.find(entry => entry.name.toLowerCase() === nameNormalized);
+
+            if (alreadyRegistered) {
+                errorMsgText.textContent = `Driver "${studentName}" is already registered on the grid! Each driver gets only 1 attempt.`;
+                registrationErrorBox.classList.remove('hidden');
+                return;
+            }
+
+            screenRegister.classList.add('hidden');
+            screenExam.classList.remove('hidden');
+            screenExam.classList.add('screen-fade-in');
+
+            startTimer();
+            loadQuestion();
+        });
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                totalElapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const mins = String(Math.floor(totalElapsedSeconds / 60)).padStart(2, '0');
+                const secs = String(totalElapsedSeconds % 60).padStart(2, '0');
+                timerDisplay.textContent = `${mins}:${secs}`;
+
+                const dashOffset = 283 - ((totalElapsedSeconds % 60) / 60) * 283;
+                tachometerCircle.style.strokeDashoffset = dashOffset;
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            const q = questionsList[currentIdx];
+            questionTracker.innerHTML = `<i class="fa-solid fa-layer-group team-accent-color"></i> LAP ${currentIdx + 1} / ${questionsList.length}`;
+            chapterTag.textContent = q.chapter;
+            questionText.textContent = q.q;
+
+            const pct = ((currentIdx + 1) / questionsList.length) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            optionsContainer.innerHTML = '';
+            q.options.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-left p-3.5 sm:p-4 rounded-xl text-slate-200 text-xs sm:text-sm font-medium flex items-center gap-3`;
+
+                if (selectedAnswers[currentIdx] === index) {
+                    btn.classList.add('selected');
+                }
+
+                btn.innerHTML = `
+                    <span class="font-orbitron font-bold team-accent-color bg-black border border-[var(--team-border)] px-2.5 py-1 rounded-md text-[11px]">${String.fromCharCode(65 + index)}</span>
+                    <span class="flex-1">${optText}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    selectedAnswers[currentIdx] = index;
+                    highlightSelected(index);
+                });
+
+                optionsContainer.appendChild(btn);
+            });
+
+            btnPrev.style.visibility = currentIdx === 0 ? 'hidden' : 'visible';
+            btnNext.innerHTML = currentIdx === questionsList.length - 1 
+                ? 'FINISH RACE <i class="fa-solid fa-flag-checkered"></i>' 
+                : 'NEXT LAP <i class="fa-solid fa-chevron-right"></i>';
+        }
+
+        function highlightSelected(selectedIdx) {
+            const btns = optionsContainer.querySelectorAll('.option-btn');
+            btns.forEach((btn, idx) => {
+                if (idx === selectedIdx) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+        }
+
+        btnPrev.addEventListener('click', () => {
+            if (currentIdx > 0) {
+                currentIdx--;
+                loadQuestion();
+            }
+        });
+
+        btnNext.addEventListener('click', () => {
+            if (currentIdx < questionsList.length - 1) {
+                currentIdx++;
+                loadQuestion();
+            } else {
+                finishExam();
+            }
+        });
+
+        function finishExam() {
+            clearInterval(timerInterval);
+
+            let score = 0;
+            reviewList.innerHTML = '';
+
+            questionsList.forEach((q, idx) => {
+                const userAns = selectedAnswers[idx];
+                const isCorrect = userAns === q.answer;
+
+                if (isCorrect) {
+                    score++;
+                } else {
+                    const userText = userAns !== null ? q.options[userAns] : "Not Attempted";
+                    const correctText = q.options[q.answer];
+
+                    const reviewCard = document.createElement('div');
+                    reviewCard.className = "bg-black/80 border border-[var(--team-border)] p-4 rounded-xl space-y-2 text-xs";
+                    reviewCard.innerHTML = `
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span class="font-orbitron text-slate-400 font-bold">LAP ${idx + 1} • ${q.chapter.split(':')[0]}</span>
+                            <span class="text-rose-500 font-orbitron font-bold flex items-center gap-1"><i class="fa-solid fa-circle-xmark"></i> INCORRECT</span>
+                        </div>
+                        <p class="font-medium text-white">${q.q}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
+                            <div class="bg-rose-950/40 border border-rose-800/40 p-2.5 rounded-lg text-rose-200">
+                                <strong class="block text-rose-400">Your Choice:</strong> ${userText}
+                            </div>
+                            <div class="bg-emerald-950/40 border border-emerald-800/40 p-2.5 rounded-lg text-emerald-200">
+                                <strong class="block text-emerald-400">Correct Answer:</strong> ${correctText}
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-400 italic pt-1 border-t border-[var(--team-border)] mt-2"><i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i> ${q.explanation}</p>
+                    `;
+                    reviewList.appendChild(reviewCard);
+                }
+            });
+
+            if (score === questionsList.length) {
+                reviewList.innerHTML = `<div class="p-4 bg-emerald-950/40 border border-emerald-800/50 rounded-xl text-emerald-300 text-xs text-center font-orbitron font-bold">PERFECT QUALIFYING LAP! ALL 20 ANSWERS ARE CORRECT! 🏆</div>`;
+            }
+
+            screenExam.classList.add('hidden');
+            screenResult.classList.remove('hidden');
+            screenResult.classList.add('screen-fade-in');
+
+            const mins = String(Math.floor(totalElapsedSeconds / 60)).padStart(2, '0');
+            const secs = String(Math.floor(totalElapsedSeconds % 60)).padStart(2, '0');
+            const timeFormatted = `${mins}:${secs}`;
+
+            finalScore.textContent = `${score}/${questionsList.length}`;
+            finalTime.textContent = timeFormatted;
+
+            saveAndRenderLeaderboard(studentName, selectedTeamKey, score, totalElapsedSeconds, timeFormatted);
+        }
+
+        function saveAndRenderLeaderboard(name, teamKey, score, seconds, timeFormatted) {
+            let leaderboard = JSON.parse(localStorage.getItem('omkar_f1_gp_quiz_db') || '[]');
+            
+            leaderboard.push({
+                name: name,
+                teamKey: teamKey,
+                score: score,
+                seconds: seconds,
+                timeFormatted: timeFormatted
+            });
+
+            // STRICT F1 CLASSIFICATION: Most Correct Answers First, then Fastest Time
+            leaderboard.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.seconds - b.seconds;
+            });
+
+            localStorage.setItem('omkar_f1_gp_quiz_db', JSON.stringify(leaderboard));
+
+            if (leaderboard[0].name === name && leaderboard[0].score === score && window.confetti) {
+                confetti({
+                    particleCount: 150,
+                    spread: 90,
+                    origin: { y: 0.6 },
+                    colors: [teamThemes[selectedTeamKey].accent, '#ffffff', '#ffcc00']
+                });
+            }
+
+            leaderboardBody.innerHTML = '';
+            leaderboard.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                const tName = item.teamKey ? item.teamKey.toUpperCase() : 'FERRARI';
+                
+                let rankBadge = `P${idx + 1}`;
+                let rankClass = "text-slate-400 font-orbitron font-bold";
+                let highlightRow = "";
+
+                if (idx === 0) {
+                    rankBadge = "🏆 P1 POLE";
+                    rankClass = "team-accent-color font-black bg-amber-400/10 px-2 py-1 rounded border border-amber-400/30";
+                    highlightRow = "bg-white/5";
+                } else if (idx === 1) {
+                    rankBadge = "🥈 P2 FRONT";
+                    rankClass = "text-slate-200 font-bold bg-slate-400/10 px-2 py-1 rounded";
+                } else if (idx === 2) {
+                    rankBadge = "🥉 P3 PODIUM";
+                    rankClass = "text-amber-500 font-bold bg-amber-600/10 px-2 py-1 rounded";
+                }
+
+                tr.className = highlightRow;
+                tr.innerHTML = `
+                    <td class="py-3.5 px-3 text-center font-orbitron text-[11px] ${rankClass}">${rankBadge}</td>
+                    <td class="py-3.5 px-3 font-medium text-white">${item.name}</td>
+                    <td class="py-3.5 px-3 text-[10px] font-orbitron text-slate-400">${tName}</td>
+                    <td class="py-3.5 px-3 text-center font-orbitron text-white font-bold">${item.score}/20</td>
+                    <td class="py-3.5 px-3 text-right font-orbitron team-accent-color font-bold">${item.timeFormatted}</td>
+                `;
+                leaderboardBody.appendChild(tr);
+            });
+        }
+
+        // INIT DEFAULTS
+        applyTeamTheme('ferrari');
+        renderTeamSelectorGrid();
+    </script>
+</body>
+</html>
